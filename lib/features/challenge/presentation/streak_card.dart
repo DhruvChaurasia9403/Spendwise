@@ -13,16 +13,16 @@ class StreakCard extends ConsumerWidget {
     return streakAsync.when(
       loading: () => const GlassCard(
         height: 100,
-        child: Center(child: CircularProgressIndicator(color: Colors.white)),
+        child: Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        ),
       ),
       error: (err, _) => const SizedBox(),
       data: (streak) {
-
         final isWinning = streak > 0;
 
         return GlassCard(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-
           opacity: isWinning ? 0.2 : 0.1,
           child: Row(
             children: [
@@ -30,8 +30,8 @@ class StreakCard extends ConsumerWidget {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: isWinning
-                      ? Colors.orangeAccent.withOpacity(0.3)
-                      : Colors.white.withOpacity(0.1),
+                      ? Colors.orangeAccent.withAlpha((0.3 * 255).toInt())
+                      : Colors.white.withAlpha((0.1 * 255).toInt()),
                   shape: BoxShape.circle,
                 ),
                 child: Text(
@@ -46,7 +46,10 @@ class StreakCard extends ConsumerWidget {
                   children: [
                     const Text(
                       'No-Spend Streak',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(

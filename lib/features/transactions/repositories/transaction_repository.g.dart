@@ -22,7 +22,7 @@ final databaseServiceProvider = AutoDisposeProvider<DatabaseService>.internal(
 
 typedef DatabaseServiceRef = AutoDisposeProviderRef<DatabaseService>;
 String _$transactionRepositoryHash() =>
-    r'e5c7649b8043e0d8978e5b1006d29522098e105f';
+    r'6649dd8c2a0799fff40f2999bc5efba43909ed24';
 
 /// See also [TransactionRepository].
 @ProviderFor(TransactionRepository)

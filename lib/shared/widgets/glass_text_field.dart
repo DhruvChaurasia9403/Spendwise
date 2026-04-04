@@ -23,17 +23,26 @@ class GlassTextField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(color: Colors.white54),
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: Colors.white70) : null,
+        prefixIcon: prefixIcon != null
+            ? Icon(prefixIcon, color: Colors.white70)
+            : null,
         filled: true,
-        fillColor: Colors.white.withOpacity(0.1),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        fillColor: Colors.white.withAlpha((0.1 * 255).toInt()),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+          borderSide: BorderSide(
+            color: Colors.white.withAlpha((0.2 * 255).toInt()),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+          borderSide: BorderSide(
+            color: Colors.white.withAlpha((0.2 * 255).toInt()),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

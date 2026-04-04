@@ -1,18 +1,19 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../transactions/providers/transaction_provider.dart';
-import '../../transactions/models/transaction.dart';
 
 part 'insights_provider.g.dart';
 
 class InsightsData {
-  final Map<String, double> categoryTotals;
-  final List<double> weeklyTrend; 
   final String topCategory;
+  final Map<String, double> categoryTotals;
+  final List<double> dailyTrend;
+  final List<double> weeklyTrend;
 
   InsightsData({
-    required this.categoryTotals,
-    required this.weeklyTrend,
     required this.topCategory,
+    required this.categoryTotals,
+    required this.dailyTrend,
+    required this.weeklyTrend,
   });
 }
 
@@ -20,29 +21,44 @@ class InsightsData {
 AsyncValue<InsightsData> insights(InsightsRef ref) {
   final transactionsAsync = ref.watch(transactionNotifierProvider);
 
-  return transactionsAsync.whenData((transactions) {
-    final Map<String, double> categoryMap = {};
-    final List<double> trend = List.filled(7, 0.0);
-    final now = DateTime.now();
+  if (transactionsAsync is AsyncLoading) return const AsyncValue.loading();
+  if (transactionsAsync is AsyncError) return AsyncValue.error(transactionsAsync.error!, transactionsAsync.stackTrace!);
 
-    for (var tx in transactions) {
-      if (tx.isExpense) {
-        categoryMap[tx.category] = (categoryMap[tx.category] ?? 0) + tx.amount;        final difference = now.difference(tx.date).inDays;
-        if (difference >= 0 && difference < 7) {
-          trend[6 - difference] += tx.amount;
-        }
-      }
+  final transactions = transactionsAsync.valueOrNull ?? [];
+  final expenses = transactions.where((tx) => tx.isExpense).toList();
+
+  final Map<String, double> totals = {};
+  double maxSpend = 0;
+  String topCat = '';
+
+  for (var tx in expenses) {
+    totals[tx.category] = (totals[tx.category] ?? 0) + tx.amount;
+    if (totals[tx.category]! > maxSpend) {
+      maxSpend = totals[tx.category]!;
+      topCat = tx.category;
     }
+  }
 
-    String topCat = 'None';
-    if (categoryMap.isNotEmpty) {
-      topCat = categoryMap.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+  final List<double> daily = List.filled(7, 0.0);
+  final List<double> weekly = List.filled(4, 0.0);
+  final now = DateTime.now();
+
+  for (var tx in expenses) {
+    if (tx.date.month == now.month && tx.date.year == now.year) {
+
+      int weekdayIndex = tx.date.weekday - 1;
+      daily[weekdayIndex] += tx.amount;
+
+      int weekIndex = (tx.date.day - 1) ~/ 7;
+      if (weekIndex > 3) weekIndex = 3;
+      weekly[weekIndex] += tx.amount;
     }
+  }
 
-    return InsightsData(
-      categoryTotals: categoryMap,
-      weeklyTrend: trend,
-      topCategory: topCat,
-    );
-  });
+  return AsyncValue.data(InsightsData(
+    topCategory: topCat,
+    categoryTotals: totals,
+    dailyTrend: daily,
+    weeklyTrend: weekly,
+  ));
 }

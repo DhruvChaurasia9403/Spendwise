@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../transactions/providers/transaction_provider.dart';
+import '../../profile/providers/profile_provider.dart';
 
 part 'dashboard_providers.g.dart';
 
@@ -16,25 +17,29 @@ class DashboardSummary {
 }
 
 @riverpod
-AsyncValue<DashboardSummary> dashboardSummary(DashboardSummaryRef ref) {
-  final transactionsAsync = ref.watch(transactionNotifierProvider);
+DashboardSummary dashboardSummary(DashboardSummaryRef ref) {
+  final transactions = ref.watch(transactionNotifierProvider).valueOrNull ?? [];
+  final profile = ref.watch(profileNotifierProvider).valueOrNull;
 
-  return transactionsAsync.whenData((transactions) {
-    double income = 0;
-    double expenses = 0;
+  final baseIncome = profile?.targetIncome ?? 0.0;
 
-    for (var tx in transactions) {
-      if (tx.isExpense) {
-        expenses += tx.amount;
-      } else {
-        income += tx.amount;
-      }
+  double addedIncome = 0;
+  double expenses = 0;
+
+  for (var tx in transactions) {
+    if (tx.isExpense) {
+      expenses += tx.amount;
+    } else {
+      addedIncome += tx.amount;
     }
+  }
 
-    return DashboardSummary(
-      balance: income - expenses,
-      income: income,
-      expenses: expenses,
-    );
-  });
+  final totalIncome = baseIncome + addedIncome;
+  final totalBalance = totalIncome - expenses;
+
+  return DashboardSummary(
+    balance: totalBalance,
+    income: totalIncome,
+    expenses: expenses,
+  );
 }

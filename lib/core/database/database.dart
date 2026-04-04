@@ -1,5 +1,6 @@
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
+import '../../features/profile/models/user_profile.dart';
 import '../../features/transactions/models/transaction.dart';
 
 class DatabaseService {
@@ -10,7 +11,7 @@ class DatabaseService {
     if (Isar.instanceNames.isEmpty) {
       final dir = await getApplicationDocumentsDirectory();
       db = await Isar.open(
-        [TransactionSchema],
+        [TransactionSchema, UserProfileSchema],
         directory: dir.path,
         inspector: true,
       );
