@@ -18,10 +18,37 @@ class AddTransactionSheet extends ConsumerStatefulWidget {
 class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
   late TextEditingController _amountController;
   late TextEditingController _notesController;
-  late TextEditingController _categoryController;
 
   late TransactionType _selectedType;
   late DateTime _selectedDate;
+  late String _selectedCategory;
+
+  final List<String> _expenseCategories = [
+    'Food & Dining',
+    'Transportation',
+    'Housing & Utilities',
+    'Shopping',
+    'Entertainment',
+    'Health & Fitness',
+    'Personal Care',
+    'Education',
+    'Travel',
+    'Bills & Fees',
+    'Subscriptions',
+    'Gifts & Donations',
+    'Miscellaneous'
+  ];
+
+  final List<String> _incomeCategories = [
+    'Salary',
+    'Freelance',
+    'Investments',
+    'Gifts',
+    'Refunds',
+    'Rental Income',
+    'Sale of Items',
+    'Other Income'
+  ];
 
   @override
   void initState() {
@@ -29,27 +56,32 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     final tx = widget.transaction;
 
     _amountController = TextEditingController(text: tx != null ? tx.amount.toString() : '');
-    _categoryController = TextEditingController(text: tx?.category ?? '');
     _notesController = TextEditingController(text: tx?.notes ?? '');
     _selectedType = tx?.type ?? TransactionType.expense;
     _selectedDate = tx?.date ?? DateTime.now();
+
+    if (tx != null && tx.category.isNotEmpty) {
+      _selectedCategory = tx.category;
+    } else {
+      _selectedCategory = _selectedType == TransactionType.expense
+          ? _expenseCategories.first
+          : _incomeCategories.first;
+    }
   }
 
   @override
   void dispose() {
     _amountController.dispose();
     _notesController.dispose();
-    _categoryController.dispose();
     super.dispose();
   }
 
   void _submitData() {
     final amountText = _amountController.text;
-    final category = _categoryController.text.trim();
 
-    if (amountText.isEmpty || category.isEmpty) {
+    if (amountText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter an amount and category')),
+        const SnackBar(content: Text('Please enter an amount')),
       );
       return;
     }
@@ -60,7 +92,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     final newTx = Transaction()
       ..amount = amount
       ..type = _selectedType
-      ..category = category
+      ..category = _selectedCategory
       ..date = _selectedDate
       ..notes = _notesController.text.trim();
 
@@ -108,6 +140,11 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final textColor = AppTheme.textColor(context);
     final textDimColor = AppTheme.textDimColor(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final currentCategories = _selectedType == TransactionType.expense
+        ? _expenseCategories
+        : _incomeCategories;
 
     return Container(
       decoration: BoxDecoration(
@@ -138,7 +175,12 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
           Row(children: [
             Expanded(
               child: GestureDetector(
-                onTap: () => setState(() => _selectedType = TransactionType.expense),
+                onTap: () => setState(() {
+                  _selectedType = TransactionType.expense;
+                  if (!_expenseCategories.contains(_selectedCategory)) {
+                    _selectedCategory = _expenseCategories.first;
+                  }
+                }),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(vertical: 12),
@@ -169,7 +211,12 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
             const SizedBox(width: 16),
             Expanded(
               child: GestureDetector(
-                onTap: () => setState(() => _selectedType = TransactionType.income),
+                onTap: () => setState(() {
+                  _selectedType = TransactionType.income;
+                  if (!_incomeCategories.contains(_selectedCategory)) {
+                    _selectedCategory = _incomeCategories.first;
+                  }
+                }),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(vertical: 12),
@@ -207,13 +254,46 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             prefixIcon: Icons.currency_rupee,
           ),
-          const SizedBox(height: 16),
-          GlassTextField(
-            hintText: 'Category (e.g. Food, Fuel)',
-            controller: _categoryController,
-            prefixIcon: Icons.category_outlined,
+
+          const SizedBox(height: 24),
+
+          Text('Category', style: TextStyle(color: textDimColor, fontSize: 14)),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: currentCategories.map((category) {
+                final isSelected = _selectedCategory == category;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedCategory = category),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.only(right: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppTheme.brandPurple.withAlpha(((isDark ? 0.4 : 0.2) * 255).toInt())
+                          : AppTheme.glassColor(context),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isSelected ? AppTheme.brandPurple : AppTheme.glassBorder(context),
+                      ),
+                    ),
+                    child: Text(
+                      category,
+                      style: TextStyle(
+                        color: isSelected ? textColor : textDimColor,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
-          const SizedBox(height: 16),
+
+          const SizedBox(height: 24),
 
           Row(children: [
             Expanded(
@@ -224,7 +304,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
             ),
             TextButton.icon(
               onPressed: _presentDatePicker,
-              icon: Icon(Icons.calendar_today, color: AppTheme.brandPurple),
+              icon: const Icon(Icons.calendar_today, color: AppTheme.brandPurple),
               label: const Text(
                 'Choose Date',
                 style: TextStyle(color: AppTheme.brandPurple, fontWeight: FontWeight.bold),
