@@ -1,63 +1,21 @@
-# SpendWise: Intelligent Personal Finance
+# SpendWise
 
-SpendWise is a modern, high-performance personal finance application built with Flutter. It follows a local-first architecture and is designed to provide a smooth, responsive experience. The app focuses on real-time transaction tracking, structured financial insights, and a clean, premium interface that helps users better understand and control their spending habits.
-
----
-
-## Key Features
-
-### Core Functionality
-
-Real-Time Tracking  
-Instantly log income and expenses with proper categorization.
-
-Dynamic Dashboard  
-View real-time balance updates, monthly summaries, and recent activity in one place.
-
-Deep Analytics  
-Understand spending patterns using interactive charts and trend visualizations across daily, weekly, and yearly views.
-
-Streak Gamification  
-Track "No-Spend" streaks to encourage disciplined financial behavior.
-
-Time-Travel Archive  
-Automatically archives monthly data for easy historical tracking.
+SpendWise is a modern personal finance application built with Flutter. It focuses on clean UX, real-time tracking, and structured insights to help users understand and control their spending habits.
 
 ---
 
-### UI and Experience
+## Overview
 
-Aura Glass Aesthetic  
-A glassmorphic interface with support for both light and dark modes.
-
-Micro-interactions  
-Smooth and responsive animations powered by flutter_animate for a fluid experience.
-
-Interactive Tooltips  
-Touch-enabled charts that allow detailed inspection of financial data.
+SpendWise allows users to:
+- Track income and expenses
+- View real-time balance updates
+- Analyze spending patterns through insights
+- Maintain streaks for disciplined spending
+- Manage personal financial profiles
 
 ---
 
-### Technical Highlights
-
-Local-First Database  
-Uses Isar Database for fast and reliable offline data storage.
-
-Reactive State Management  
-Built with Riverpod and riverpod_annotation for scalable and maintainable state handling.
-
-Clean Architecture  
-Follows a clear separation between Presentation, Domain, and Data layers.
-
----
-
-## System Architecture and Data Flow
-
-SpendWise follows a unidirectional data flow to ensure that UI components remain clean and independent from business logic and database operations.
-
----
-
-### User Flow
+## User Flow
 
 ```mermaid
 flowchart TD
@@ -65,7 +23,7 @@ A[Launch App] --> B[Onboarding / Profile Setup]
 B --> C[Dashboard]
 C --> D[Add Transaction]
 C --> E[View Insights]
-C --> F[Profile & History Vault]
+C --> F[Profile Screen]
 
     D --> C
     E --> C
@@ -74,11 +32,11 @@ C --> F[Profile & History Vault]
 
 ---
 
-### State and Data Flow
+## Data Flow
 
 ```mermaid
 flowchart LR
-UI[UI Layer Widgets/Screens] --> State[Riverpod State Providers]
+UI[UI Layer] --> State[Riverpod State Providers]
 State --> Repo[Repository Layer]
 Repo --> DB[Isar Database]
 
@@ -89,41 +47,57 @@ Repo --> DB[Isar Database]
 
 ---
 
+## Architecture
+
+```mermaid
+flowchart TD
+A[Presentation Layer] --> B[State Management]
+B --> C[Domain Logic]
+C --> D[Data Layer]
+
+    D --> E[Isar DB]
+```
+
+---
+
+## Features
+
+- Real-time transaction tracking
+- Monthly and lifetime analytics
+- Category-based expense breakdown
+- Glassmorphic premium UI
+- Local database with Isar
+- Reactive state management with Riverpod
+
+---
+
 ## Screenshots
 
 <p align="center">
-<img src="assets/SS1.png" width="22%" alt="Dashboard Screenshot" />
-<img src="assets/SS2.png" width="22%" alt="Add Expense Screenshot" />
-<img src="assets/SS3.png" width="22%" alt="Insights Screenshot" />
-<img src="assets/SS4.png" width="22%" alt="Profile Screenshot" />
+  <img src="assets/SS1.jpeg" width="22%" />
+  <img src="assets/SS2.jpeg" width="22%" />
+  <img src="assets/SS3.jpeg" width="22%" />
+  <img src="assets/SS4.jpeg" width="22%" />
 </p>
 
 <p align="center">
-<b>Dashboard</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<b>Add Expense</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<b>Insights</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<b>Profile</b>
+  <sub>Dashboard</sub> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <sub>Add Expense</sub> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <sub>Insights</sub> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <sub>Profile</sub>
 </p>
+
+---
+
+## Download APK
+
+[Download APK](YOUR_GOOGLE_DRIVE_LINK_HERE)
 
 ---
 
 ## Getting Started
 
-Follow these steps to run the project locally.
-
----
-
-### Prerequisites
-
-- Flutter SDK (version 3.19.0 or higher recommended)
-- Dart SDK
-- IDE such as VS Code, Android Studio, or IntelliJ
-
----
-
-### Installation
-
-#### 1. Clone the repository
+### Clone the repository
 
 ```bash
 git clone https://github.com/DhruvChaurasia9403/Spendwise.git
@@ -132,7 +106,7 @@ cd spendwise
 
 ---
 
-#### 2. Install dependencies
+### Install dependencies
 
 ```bash
 flutter pub get
@@ -140,23 +114,15 @@ flutter pub get
 
 ---
 
-#### 3. Generate required files
-
-This project relies on generated files for Riverpod and Isar. Run the following before building:
+### Generate required files
 
 ```bash
-dart run build_runner build -d
-```
-
-For active development:
-
-```bash
-dart run build_runner watch -d
+dart run build_runner build --delete-conflicting-outputs
 ```
 
 ---
 
-#### 4. Run the application
+### Run the app
 
 ```bash
 flutter run
@@ -166,51 +132,38 @@ flutter run
 
 ## Project Structure
 
-```
-lib/
-├── core/                   
-├── shared/                 
-└── features/               
-├── dashboard/          
-├── transactions/       
-├── insights/           
-└── profile/            
+```mermaid
+flowchart TD
+A[lib/] --> B[core/]
+A --> C[features/]
+A --> D[shared/]
+
+    C --> E[dashboard]
+    C --> F[transactions]
+    C --> G[insights]
+    C --> H[profile]
 ```
 
 ---
 
 ## Tech Stack
 
-Framework  
-Flutter
-
-State Management  
-flutter_riverpod, riverpod_annotation
-
-Local Storage  
-isar, isar_flutter_libs
-
-Data Visualization  
-fl_chart
-
-Animations  
-flutter_animate
-
-Typography  
-google_fonts
+- Flutter
+- Riverpod
+- Isar Database
+- fl_chart
+- Google Fonts
 
 ---
 
-## Download Release
+## Notes
 
-Download the latest Android build:
-
-https://drive.google.com/file/d/1ZwJInhlHpu9gJlW6JHKNt4A_DoeylnFq/view?usp=drive_link
-
-(Requires Android 8.0 or higher)
+- Generated files (*.g.dart) are excluded from version control
+- Ensure build_runner is executed before running the app
+- Designed for performance with optimized UI rendering
 
 ---
 
-## License and Usage
+## License
 
-This project is private and maintained by Dhruv Chaurasia. It is not intended for public distribution or commercial use without permission.
+This project is private and not intended for public distribution.

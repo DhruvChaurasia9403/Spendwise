@@ -65,16 +65,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Profile', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: textColor)),
-                      IconButton(
-                        onPressed: () => _showPremiumEditSheet(context, ref, profile),
-                        icon: Icon(Icons.settings_rounded, color: AppTheme.brandPurple, size: 28),
-                      )
-                    ],
-                  ).animate().fade().slideX(begin: -0.1),
+                  Text('Profile', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: textColor)),
                   const SizedBox(height: 24),
 
                   GlassCard(
@@ -113,13 +104,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 ]
                             ),
                           ),
+                          IconButton(
+                            onPressed: () => _showPremiumEditSheet(context, ref, profile),
+                            icon: Icon(Icons.edit_rounded, color: AppTheme.brandPurple, size: 26),
+                          )
                         ]
                     ),
-                  ).animate().fade(delay: 100.ms).slideY(begin: 0.1),
+                  ),
 
                   const SizedBox(height: 32),
 
-                  Text('History Vault', style: TextStyle(color: textDimColor, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 1.2)).animate().fade(delay: 200.ms),
+                  Text('History Vault', style: TextStyle(color: textDimColor, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 1.2)),
                   const SizedBox(height: 12),
 
                   SizedBox(
@@ -144,7 +139,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ],
                       ),
                     ),
-                  ).animate().fade(delay: 300.ms).slideX(begin: 0.1),
+                  ),
 
                   const SizedBox(height: 32),
 
@@ -165,7 +160,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                       )
                     ],
-                  ).animate().fade(delay: 400.ms),
+                  ),
                   const SizedBox(height: 12),
 
                   GlassCard(
@@ -174,11 +169,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     child: _showLineChart
                         ? _buildYearlyLineChart(textColor, textDimColor, archives, currentMonthSpend, now.month)
                         : _buildYearlyBarChart(textColor, textDimColor, archives, currentMonthSpend, now.month),
-                  ).animate().fade(delay: 500.ms).scale(begin: const Offset(0.95, 0.95)),
+                  ),
 
                   const SizedBox(height: 32),
 
-                  Text('Preferences', style: TextStyle(color: textDimColor, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 1.2)).animate().fade(delay: 600.ms),
+                  Text('Preferences', style: TextStyle(color: textDimColor, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 1.2)),
                   const SizedBox(height: 12),
                   GlassCard(
                     padding: EdgeInsets.zero,
@@ -197,9 +192,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         onChanged: (_) => ref.read(themeNotifierProvider.notifier).toggleTheme(),
                       ),
                     ),
-                  ).animate().fade(delay: 700.ms),
+                  ),
                 ],
-              ),
+              ).animate().fade(duration: 400.ms).slideY(begin: 0.05),
             ),
           ),
         );
