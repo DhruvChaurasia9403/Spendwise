@@ -53,11 +53,9 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                 ),
               ),
               data: (data) {
-                final totalSpend =
-                data.categoryTotals.values.fold(0.0, (sum, item) => sum + item);
+                final totalSpend = data.categoryTotals.values.fold(0.0, (sum, item) => sum + item);
                 final hasData = totalSpend > 0;
-                final chartData =
-                _timeView == 0 ? data.dailyTrend : data.weeklyTrend;
+                final chartData = _timeView == 0 ? data.dailyTrend : data.weeklyTrend;
 
                 return Expanded(
                   child: ListView(
@@ -94,8 +92,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: AppTheme.expenseRed
-                                    .withAlpha((0.1 * 255).toInt()),
+                                color: AppTheme.expenseRed.withAlpha((0.1 * 255).toInt()),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
@@ -108,7 +105,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                             ),
                           ],
                         ),
-                      ).animate().fade(delay: 100.ms).slideY(begin: 0.1),
+                      ),
                       const SizedBox(height: 32),
                       Text(
                         'Spending Breakdown',
@@ -117,23 +114,19 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                         ),
-                      ).animate().fade(delay: 200.ms),
+                      ),
                       const SizedBox(height: 16),
                       GlassCard(
                         height: 320,
                         padding: const EdgeInsets.all(20),
                         child: hasData
-                            ? _buildPieChart(
-                            data.categoryTotals, totalSpend, dimColor)
+                            ? _buildPieChart(data.categoryTotals, totalSpend, dimColor)
                             : _buildEmptyState(
                           context,
                           Icons.pie_chart_outline_rounded,
                           'Log more expenses to generate your breakdown.',
                         ),
-                      )
-                          .animate()
-                          .fade(delay: 300.ms)
-                          .scale(begin: const Offset(0.95, 0.95)),
+                      ),
                       const SizedBox(height: 32),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -158,26 +151,21 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                                 ),
                                 child: Row(
                                   children: [
-                                    _buildTimeToggle(
-                                        0, 'Days', textColor, dimColor),
-                                    _buildTimeToggle(
-                                        1, 'Weeks', textColor, dimColor),
+                                    _buildTimeToggle(0, 'Days', textColor, dimColor),
+                                    _buildTimeToggle(1, 'Weeks', textColor, dimColor),
                                   ],
                                 ),
                               ),
                               const SizedBox(width: 12),
                               GestureDetector(
-                                onTap: () => setState(
-                                        () => _showLineChart = !_showLineChart),
+                                onTap: () => setState(() => _showLineChart = !_showLineChart),
                                 child: Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: AppTheme.brandPurple
-                                        .withAlpha((0.15 * 255).toInt()),
+                                    color: AppTheme.brandPurple.withAlpha((0.15 * 255).toInt()),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: AppTheme.brandPurple
-                                          .withAlpha((0.3 * 255).toInt()),
+                                      color: AppTheme.brandPurple.withAlpha((0.3 * 255).toInt()),
                                     ),
                                   ),
                                   child: Icon(
@@ -192,7 +180,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                             ],
                           ),
                         ],
-                      ).animate().fade(delay: 400.ms),
+                      ),
                       const SizedBox(height: 16),
                       GlassCard(
                         height: 280,
@@ -211,12 +199,9 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                           Icons.trending_up_rounded,
                           'Not enough data points yet to plot a trend.',
                         ),
-                      )
-                          .animate()
-                          .fade(delay: 500.ms)
-                          .scale(begin: const Offset(0.95, 0.95)),
+                      ),
                     ],
-                  ),
+                  ).animate().fade(delay: 100.ms, duration: 400.ms).slideY(begin: 0.05),
                 );
               },
             ),
@@ -226,8 +211,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
     );
   }
 
-  Widget _buildTimeToggle(
-      int index, String label, Color textColor, Color dimColor) {
+  Widget _buildTimeToggle(int index, String label, Color textColor, Color dimColor) {
     final isSelected = _timeView == index;
 
     return GestureDetector(
@@ -242,8 +226,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
           label,
           style: TextStyle(
             color: isSelected ? Colors.white : dimColor,
-            fontWeight:
-            isSelected ? FontWeight.bold : FontWeight.normal,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             fontSize: 12,
           ),
         ),
@@ -251,8 +234,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
     );
   }
 
-  Widget _buildEmptyState(
-      BuildContext context, IconData icon, String message) {
+  Widget _buildEmptyState(BuildContext context, IconData icon, String message) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -260,8 +242,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
           Icon(
             icon,
             size: 60,
-            color: AppTheme.textDimColor(context)
-                .withAlpha((0.3 * 255).toInt()),
+            color: AppTheme.textDimColor(context).withAlpha((0.3 * 255).toInt()),
           ),
           const SizedBox(height: 16),
           Text(
@@ -289,10 +270,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
     );
   }
 
-  Widget _buildPieChart(
-      Map<String, double> categoryTotals,
-      double totalSpend,
-      Color dimColor) {
+  Widget _buildPieChart(Map<String, double> categoryTotals, double totalSpend, Color dimColor) {
     return PieChart(
       PieChartData(
         sectionsSpace: 4,
@@ -310,12 +288,10 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
           var colorIndex = 0;
 
           return categoryTotals.entries.map((entry) {
-            final color =
-            sliceColors[colorIndex % sliceColors.length];
+            final color = sliceColors[colorIndex % sliceColors.length];
             colorIndex++;
 
-            final percentage =
-            (entry.value / totalSpend * 100).toStringAsFixed(0);
+            final percentage = (entry.value / totalSpend * 100).toStringAsFixed(0);
 
             return PieChartSectionData(
               value: entry.value,
@@ -326,9 +302,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
-                shadows: [
-                  Shadow(color: Colors.black54, blurRadius: 4)
-                ],
+                shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
               ),
             );
           }).toList();
@@ -340,10 +314,8 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
   FlTitlesData _buildTitles(Color dimColor) {
     return FlTitlesData(
       show: true,
-      topTitles:
-      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-      rightTitles:
-      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       bottomTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
@@ -352,15 +324,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
             var label = '';
 
             if (_timeView == 0) {
-              const days = [
-                'Mon',
-                'Tue',
-                'Wed',
-                'Thu',
-                'Fri',
-                'Sat',
-                'Sun'
-              ];
+              const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
               if (index >= 0 && index < days.length) {
                 label = days[index];
               }
@@ -431,8 +395,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
         borderData: FlBorderData(show: false),
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
-            tooltipBgColor:
-            AppTheme.brandPurple.withAlpha(230),
+            tooltipBgColor: AppTheme.brandPurple.withAlpha(230),
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               return BarTooltipItem(
                 AppFormatters.formatCurrency(rod.toY),
@@ -474,8 +437,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
         lineTouchData: LineTouchData(
           handleBuiltInTouches: true,
           touchTooltipData: LineTouchTooltipData(
-            tooltipBgColor:
-            AppTheme.brandPurple.withAlpha(230),
+            tooltipBgColor: AppTheme.brandPurple.withAlpha(230),
             getTooltipItems: (touchedSpots) {
               return touchedSpots
                   .map(
@@ -493,12 +455,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
         ),
         lineBarsData: [
           LineChartBarData(
-            spots: trend
-                .asMap()
-                .entries
-                .map((e) => FlSpot(
-                e.key.toDouble(), e.value))
-                .toList(),
+            spots: trend.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value)).toList(),
             isCurved: true,
             color: AppTheme.brandPurple,
             barWidth: 4,
@@ -508,10 +465,8 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
               show: true,
               gradient: LinearGradient(
                 colors: [
-                  AppTheme.brandPurple
-                      .withAlpha((0.4 * 255).toInt()),
-                  AppTheme.brandPurple
-                      .withAlpha(0),
+                  AppTheme.brandPurple.withAlpha((0.4 * 255).toInt()),
+                  AppTheme.brandPurple.withAlpha(0),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
