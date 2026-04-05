@@ -204,8 +204,15 @@ google_fonts
 ## Download Release
 
 Download the latest Android build:
+Version-1.0
 
 https://drive.google.com/file/d/1ZwJInhlHpu9gJlW6JHKNt4A_DoeylnFq/view?usp=drive_link
+
+
+## Latest version
+Version-1.1
+
+https://drive.google.com/file/d/1EoQqUenWtP258ZmVbuJJZjdK1d8rGT4G/view?usp=sharing
 
 (Requires Android 8.0 or higher)
 
