@@ -2,6 +2,7 @@ import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../features/profile/models/user_profile.dart';
 import '../../features/transactions/models/transaction.dart';
+import '../../features/history/models/monthly_summary.dart';
 
 class DatabaseService {
   late Isar db;
@@ -11,7 +12,7 @@ class DatabaseService {
     if (Isar.instanceNames.isEmpty) {
       final dir = await getApplicationDocumentsDirectory();
       db = await Isar.open(
-        [TransactionSchema, UserProfileSchema],
+        [TransactionSchema, UserProfileSchema, MonthlySummarySchema],
         directory: dir.path,
         inspector: true,
       );

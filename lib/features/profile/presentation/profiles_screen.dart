@@ -1,7 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'dart:ui';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
@@ -11,6 +11,7 @@ import '../providers/profile_provider.dart';
 import '../../transactions/providers/transaction_provider.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../providers/archive_provider.dart';
+import '../../dashboard/providers/selected_month_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -32,16 +33,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileNotifierProvider);
     final isDarkMode = ref.watch(themeNotifierProvider) == ThemeMode.dark;
-
     final archives = ref.watch(archiveNotifierProvider).valueOrNull ?? [];
-
     final transactionsAsync = ref.watch(transactionNotifierProvider);
-    double currentMonthSpend = 0;
+    final selectedMonth = ref.watch(selectedMonthProvider);
+
     final now = DateTime.now();
+    final isCurrentMonth = selectedMonth.month == now.month && selectedMonth.year == now.year;
+
+    double currentMonthSpend = 0;
 
     if (transactionsAsync is AsyncData) {
       for (var tx in transactionsAsync.value!) {
-        if (tx.isExpense && tx.date.month == now.month && tx.date.year == now.year) {
+        if (tx.isExpense && tx.date.month == selectedMonth.month && tx.date.year == selectedMonth.year) {
           currentMonthSpend += tx.amount;
         }
       }
@@ -58,147 +61,228 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
         return Scaffold(
           backgroundColor: Colors.transparent,
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(left: 24, right: 24, top: 24, bottom: 120),
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Profile', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: textColor)),
-                  const SizedBox(height: 24),
-
-                  GlassCard(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [
-                              BoxShadow(color: AppTheme.brandPurple.withAlpha(127), blurRadius: 20, spreadRadius: -5)
-                            ]),
-                            child: CircleAvatar(
-                              radius: 40,
-                              backgroundColor: AppTheme.brandPurple.withAlpha(76),
-                              child: Text(profile.avatar, style: const TextStyle(fontSize: 40)),
-                            ),
-                          ),
-                          const SizedBox(width: 20),
-                          Expanded(
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(profile.name, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: textColor)),
-                                  const SizedBox(height: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.incomeGreen.withAlpha(38),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(color: AppTheme.incomeGreen.withAlpha(76)),
-                                    ),
-                                    child: Text(
-                                      'Income: ${AppFormatters.formatCurrency(profile.targetIncome)}',
-                                      style: const TextStyle(color: AppTheme.incomeGreen, fontWeight: FontWeight.bold, fontSize: 13),
-                                    ),
-                                  ),
-                                ]
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () => _showPremiumEditSheet(context, ref, profile),
-                            icon: Icon(Icons.edit_rounded, color: AppTheme.brandPurple, size: 26),
-                          )
-                        ]
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  Text('History Vault', style: TextStyle(color: textDimColor, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 1.2)),
-                  const SizedBox(height: 12),
-
-                  SizedBox(
-                    height: 110,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
-                      child: Row(
-                        children: [
-                          _buildArchiveCard(
-                              context: context,
-                              title: '${_getMonthName(now.month)} ${now.year}',
-                              amount: currentMonthSpend,
-                              isCurrent: true
-                          ),
-                          ...archives.map((archive) => _buildArchiveCard(
-                              context: context,
-                              title: '${_getMonthName(archive.month)} ${archive.year}',
-                              amount: archive.totalExpenses,
-                              isCurrent: false
-                          )),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Text('Profile', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: textColor)),
+            actions: [
+              IconButton(
+                onPressed: () => _showPremiumEditSheet(context, ref, profile, transactionsAsync),
+                icon: const Icon(Icons.edit_rounded, size: 24),
+                color: textColor,
+              ),
+              const SizedBox(width: 16),
+            ],
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.only(left: 24, right: 24, top: 8, bottom: 120),
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Column(
                     children: [
-                      Text('Yearly Analytics', style: TextStyle(color: textDimColor, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 1.2)),
-                      GestureDetector(
-                        onTap: () => setState(() => _showLineChart = !_showLineChart),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppTheme.brandPurple.withAlpha(38),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppTheme.brandPurple.withAlpha(76)),
-                          ),
-                          child: Icon(_showLineChart ? Icons.bar_chart_rounded : Icons.show_chart_rounded, color: AppTheme.brandPurple, size: 18),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTheme.brandPurple.withAlpha(100), width: 2),
+                            boxShadow: [
+                              BoxShadow(color: AppTheme.brandPurple.withAlpha(60), blurRadius: 24, spreadRadius: 2)
+                            ]
                         ),
-                      )
+                        child: CircleAvatar(
+                          radius: 46,
+                          backgroundColor: AppTheme.brandPurple.withAlpha(50),
+                          child: Text(profile.avatar, style: const TextStyle(fontSize: 42)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(profile.name, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: textColor, letterSpacing: -0.5)),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppTheme.incomeGreen.withAlpha(30),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppTheme.incomeGreen.withAlpha(80)),
+                        ),
+                        child: Text(
+                          'Target Income: ${AppFormatters.formatCurrency(profile.targetIncome)}',
+                          style: const TextStyle(color: AppTheme.incomeGreen, fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                ).animate().fade(duration: 400.ms).slideY(begin: 0.1),
 
-                  GlassCard(
-                    height: 250,
-                    padding: const EdgeInsets.only(top: 30, bottom: 16, left: 10, right: 24),
-                    child: _showLineChart
-                        ? _buildYearlyLineChart(textColor, textDimColor, archives, currentMonthSpend, now.month)
-                        : _buildYearlyBarChart(textColor, textDimColor, archives, currentMonthSpend, now.month),
-                  ),
+                const SizedBox(height: 48),
 
-                  const SizedBox(height: 32),
-
-                  Text('Preferences', style: TextStyle(color: textDimColor, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 1.2)),
-                  const SizedBox(height: 12),
-                  GlassCard(
-                    padding: EdgeInsets.zero,
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: AppTheme.brandPurple.withAlpha(50), shape: BoxShape.circle),
-                        child: Icon(isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded, color: AppTheme.brandPurple),
-                      ),
-                      title: Text('Appearance', style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
-                      subtitle: Text(isDarkMode ? 'Dark Mode' : 'Light Mode', style: TextStyle(color: textDimColor, fontSize: 13)),
-                      trailing: Switch(
-                        value: isDarkMode,
-                        activeColor: AppTheme.brandPurple,
-                        onChanged: (_) => ref.read(themeNotifierProvider.notifier).toggleTheme(),
-                      ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('History Vault', style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 4),
+                        Text('Your archived months', style: TextStyle(color: textDimColor, fontSize: 13)),
+                      ],
                     ),
+                    GestureDetector(
+                      onTap: () {
+                        double currentIncome = profile.targetIncome;
+                        double currentExp = 0;
+                        Map<String, double> categories = {};
+
+                        if (transactionsAsync is AsyncData) {
+                          for (var tx in transactionsAsync.value!) {
+                            if (tx.date.month == selectedMonth.month && tx.date.year == selectedMonth.year) {
+                              if (tx.isExpense) {
+                                currentExp += tx.amount;
+                                categories[tx.category] = (categories[tx.category] ?? 0) + tx.amount;
+                              } else {
+                                currentIncome += tx.amount;
+                              }
+                            }
+                          }
+                        }
+
+                        String topCat = categories.isEmpty ? 'None' :
+                        categories.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+
+                        ref.read(archiveNotifierProvider.notifier)
+                            .saveMonthToHistory(selectedMonth.month, selectedMonth.year, currentIncome, currentExp, topCat);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('${_getMonthName(selectedMonth.month)} archived successfully.'))
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.brandPurple.withAlpha(40),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppTheme.brandPurple.withAlpha(100)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.archive_outlined, size: 16, color: AppTheme.brandPurple),
+                            const SizedBox(width: 6),
+                            Text('Archive ${_getMonthName(selectedMonth.month)}', style: const TextStyle(color: AppTheme.brandPurple, fontSize: 13, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                SizedBox(
+                  height: 140,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    clipBehavior: Clip.none,
+                    children: [
+                      _buildArchiveCard(
+                          context: context,
+                          title: '${_getMonthName(selectedMonth.month)} ${selectedMonth.year}',
+                          amount: currentMonthSpend,
+                          isCurrent: isCurrentMonth
+                      ),
+                      ...archives.map((archive) => _buildArchiveCard(
+                          context: context,
+                          title: '${_getMonthName(archive.month)} ${archive.year}',
+                          amount: archive.totalExpenses,
+                          isCurrent: false
+                      )),
+                    ],
                   ),
-                ],
-              ).animate().fade(duration: 400.ms).slideY(begin: 0.05),
-            ),
+                ),
+
+                const SizedBox(height: 48),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Yearly Analytics', style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.w700)),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.glassColor(context),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.glassBorder(context)),
+                      ),
+                      child: Row(
+                        children: [
+                          _buildChartToggle(Icons.show_chart_rounded, true, isDarkMode),
+                          _buildChartToggle(Icons.bar_chart_rounded, false, isDarkMode),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                GlassCard(
+                  height: 280,
+                  padding: const EdgeInsets.only(top: 32, bottom: 16, left: 12, right: 24),
+                  child: _showLineChart
+                      ? _buildYearlyLineChart(textColor, textDimColor, archives, currentMonthSpend, selectedMonth.month)
+                      : _buildYearlyBarChart(textColor, textDimColor, archives, currentMonthSpend, selectedMonth.month),
+                ),
+
+                const SizedBox(height: 48),
+
+                Text('Settings', style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 16),
+
+                GlassCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        leading: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(color: AppTheme.brandPurple.withAlpha(40), borderRadius: BorderRadius.circular(12)),
+                          child: Icon(isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded, color: AppTheme.brandPurple, size: 22),
+                        ),
+                        title: Text('Appearance', style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 16)),
+                        subtitle: Text(isDarkMode ? 'Dark Mode' : 'Light Mode', style: TextStyle(color: textDimColor, fontSize: 13)),
+                        trailing: Switch(
+                          value: isDarkMode,
+                          activeColor: AppTheme.brandPurple,
+                          trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+                          inactiveTrackColor: AppTheme.glassBorder(context),
+                          onChanged: (_) => ref.read(themeNotifierProvider.notifier).toggleTheme(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ).animate().fade(duration: 400.ms).slideY(begin: 0.05),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildChartToggle(IconData icon, bool isLine, bool isDark) {
+    final isSelected = _showLineChart == isLine;
+    return GestureDetector(
+      onTap: () => setState(() => _showLineChart = isLine),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.brandPurple : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: isSelected ? Colors.white : AppTheme.textDimColor(context), size: 18),
+      ),
     );
   }
 
@@ -207,35 +291,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     Widget card = Container(
-      width: 160,
+      width: 140,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
-        color: AppTheme.glassColor(context),
+        color: isCurrent ? AppTheme.brandPurple.withAlpha(20) : AppTheme.glassColor(context),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isCurrent ? AppTheme.brandPurple.withAlpha(isDark ? 150 : 100) : AppTheme.glassBorder(context),
-          width: isCurrent ? 2 : 1.5,
+          color: isCurrent ? AppTheme.brandPurple.withAlpha(150) : AppTheme.glassBorder(context),
+          width: isCurrent ? 2 : 1,
         ),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 14)),
               if (isCurrent)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(color: AppTheme.brandPurple.withAlpha(50), borderRadius: BorderRadius.circular(4)),
-                  child: const Text('LIVE', style: TextStyle(color: AppTheme.brandPurple, fontSize: 9, fontWeight: FontWeight.bold)),
-                ),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(color: AppTheme.brandPurple, borderRadius: BorderRadius.circular(6)),
+                  child: const Text('VIEWING', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                )
+              else
+                const SizedBox(height: 24),
+              Text(title, style: TextStyle(color: isCurrent ? AppTheme.brandPurple : textDimColor(context), fontWeight: FontWeight.w600, fontSize: 13)),
             ],
           ),
-          const SizedBox(height: 8),
-          Text('- ${AppFormatters.formatCurrency(amount)}', style: const TextStyle(color: AppTheme.expenseRed, fontWeight: FontWeight.bold, fontSize: 15)),
+          Text(AppFormatters.formatCurrency(amount), style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 18)),
         ],
       ),
     );
@@ -255,9 +341,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         monthlyData[archive.month - 1] = archive.totalExpenses;
       }
     }
-
     monthlyData[liveMonth - 1] = liveSpend;
-
     return monthlyData;
   }
 
@@ -320,20 +404,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 45, getTitlesWidget: (v, m) {
         if (v == 0) return const SizedBox();
-        return Text('₹${(v/1000).toInt()}k', style: TextStyle(color: dimColor, fontSize: 10, fontWeight: FontWeight.bold));
+        return Text('${(v/1000).toInt()}k', style: TextStyle(color: dimColor, fontSize: 11, fontWeight: FontWeight.w600));
       })),
       bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, getTitlesWidget: (v, m) {
         const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
         if (v.toInt() < 0 || v.toInt() >= months.length) return const SizedBox();
         return Padding(
-          padding: const EdgeInsets.only(top: 8.0),
+          padding: const EdgeInsets.only(top: 12.0),
           child: Text(months[v.toInt()], style: TextStyle(color: dimColor, fontSize: 11, fontWeight: FontWeight.bold)),
         );
       })),
     );
   }
 
-  void _showPremiumEditSheet(BuildContext context, WidgetRef ref, dynamic profile) {
+  Color textDimColor(BuildContext context) => Theme.of(context).brightness == Brightness.dark ? Colors.white60 : const Color(0xFF64748B);
+
+  void _showPremiumEditSheet(BuildContext context, WidgetRef ref, dynamic profile, AsyncValue transactionsAsync) {
     String selectedAvatar = profile.avatar;
     final nameController = TextEditingController(text: profile.name);
     final incomeController = TextEditingController(text: profile.targetIncome.toString());
@@ -350,22 +436,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
               decoration: BoxDecoration(
-                color: isDark ? AppTheme.darkBgMain.withAlpha(204) : Colors.white.withAlpha(230),
-                border: Border(top: BorderSide(color: Colors.white.withAlpha(51), width: 1)),
+                color: isDark ? AppTheme.darkBgMain.withAlpha(220) : Colors.white.withAlpha(240),
+                border: Border(top: BorderSide(color: Colors.white.withAlpha(50), width: 1)),
               ),
               padding: EdgeInsets.only(left: 24, right: 24, top: 16, bottom: bottomInset + 24),
               child: SingleChildScrollView(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Center(child: Container(width: 40, height: 5, decoration: BoxDecoration(color: Colors.grey.withAlpha(76), borderRadius: BorderRadius.circular(10)))),
-                  const SizedBox(height: 24),
-                  Text('Edit Profile', style: TextStyle(color: textColor, fontSize: 24, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 24),
+                  Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withAlpha(100), borderRadius: BorderRadius.circular(10)))),
+                  const SizedBox(height: 32),
+                  Text('Edit Profile', style: TextStyle(color: textColor, fontSize: 24, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 32),
 
-                  Text('Choose Avatar', style: TextStyle(color: AppTheme.textDimColor(context), fontSize: 14)),
-                  const SizedBox(height: 12),
+                  Text('Choose Avatar', style: TextStyle(color: textDimColor(context), fontSize: 14, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 16),
 
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
@@ -376,7 +462,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           margin: const EdgeInsets.only(right: 12),
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: selectedAvatar == avatar ? AppTheme.brandPurple.withAlpha(isDark ? 102 : 51) : Colors.transparent,
                             shape: BoxShape.circle,
@@ -391,15 +477,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
 
                   TextField(
                     controller: nameController,
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                    style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
                     decoration: InputDecoration(
                       labelText: 'Display Name',
-                      labelStyle: TextStyle(color: AppTheme.textDimColor(context)),
-                      prefixIcon: Icon(Icons.person_outline_rounded, color: AppTheme.textDimColor(context)),
+                      labelStyle: TextStyle(color: textDimColor(context)),
+                      prefixIcon: Icon(Icons.person_outline_rounded, color: textDimColor(context)),
                       filled: true,
                       fillColor: isDark ? Colors.black12 : Colors.grey.withAlpha(25),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
@@ -407,16 +493,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
                   TextField(
                     controller: incomeController,
-                    keyboardType: TextInputType.number,
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
                     decoration: InputDecoration(
                       labelText: 'Base Monthly Income',
-                      labelStyle: TextStyle(color: AppTheme.textDimColor(context)),
-                      prefixIcon: Icon(Icons.currency_rupee_rounded, color: AppTheme.textDimColor(context)),
+                      labelStyle: TextStyle(color: textDimColor(context)),
+                      prefixIcon: Icon(Icons.currency_rupee_rounded, color: textDimColor(context)),
                       filled: true,
                       fillColor: isDark ? Colors.black12 : Colors.grey.withAlpha(25),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
@@ -424,7 +510,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 40),
 
                   SizedBox(
                     width: double.infinity,
@@ -432,13 +518,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.brandPurple,
-                        elevation: 10,
+                        elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                       onPressed: () {
                         final newIncome = double.tryParse(incomeController.text);
                         final newName = nameController.text.trim();
                         if (newIncome != null && newName.isNotEmpty) {
+
+                          ref.read(archiveNotifierProvider.notifier).autoArchivePastMonths(
+                            oldBaseIncome: profile.targetIncome,
+                            transactions: transactionsAsync.valueOrNull ?? [],
+                          );
+
                           ref.read(profileNotifierProvider.notifier).saveProfile(
                             name: newName,
                             income: newIncome,
@@ -448,7 +540,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         }
                         Navigator.pop(context);
                       },
-                      child: const Text('Save Changes', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                      child: const Text('Save Changes', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                     ),
                   ),
                 ]),

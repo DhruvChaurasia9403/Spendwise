@@ -25,6 +25,7 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   Widget build(BuildContext context) {
     final orbColor = AppTheme.orbColor(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: AppTheme.bgColor(context),
@@ -59,17 +60,27 @@ class _MainLayoutState extends State<MainLayout> {
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 24, left: 32, right: 32),
+              padding: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(40),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
                   child: Container(
                     height: 65,
                     decoration: BoxDecoration(
-                      color: AppTheme.glassColor(context),
-                      borderRadius: BorderRadius.circular(40),
-                      border: Border.all(color: AppTheme.glassBorder(context)),
+                        color: isDark ? Colors.black.withAlpha(100) : Colors.white.withAlpha(180),
+                        borderRadius: BorderRadius.circular(40),
+                        border: Border.all(
+                            color: isDark ? Colors.white.withAlpha(30) : Colors.white,
+                            width: 1.5
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(20),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          )
+                        ]
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -100,7 +111,7 @@ class _MainLayoutState extends State<MainLayout> {
         duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.brandPurple.withOpacity(0.15) : Colors.transparent,
+          color: isSelected ? AppTheme.brandPurple.withAlpha(40) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Icon(icon, color: color, size: 28),

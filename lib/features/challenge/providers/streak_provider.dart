@@ -12,10 +12,17 @@ AsyncValue<int> noSpendStreak(NoSpendStreakRef ref) {
         .map((tx) => DateTime(tx.date.year, tx.date.month, tx.date.day))
         .toSet();
 
+    if (expenseDates.isEmpty) {
+      return 0;
+    }
+
     int streak = 0;
     DateTime checkDate = DateTime.now();
     checkDate = DateTime(checkDate.year, checkDate.month, checkDate.day);
-    while (!expenseDates.contains(checkDate)) {
+
+    final currentMonth = checkDate.month;
+
+    while (!expenseDates.contains(checkDate) && checkDate.month == currentMonth) {
       streak++;
       checkDate = checkDate.subtract(const Duration(days: 1));
     }
